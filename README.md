@@ -1,6 +1,8 @@
 # CSpeed #
 
-## Simple User ##
+----------
+
+## Simple Example ##
 
 $app = new supjos\mvc\App();
 
