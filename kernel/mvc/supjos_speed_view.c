@@ -31,11 +31,17 @@
 /* {{{
     Common function to render the file or the file with variables
 */
-void speed_view_include_file(char *templ, zval *vars, zval *variables)
+void speed_view_include_file(const char *templ, zval *vars, zval *variables)
 {
+    char real_path[MAXPATHLEN];
+    if (!VCWD_REALPATH(templ, real_path)) {
+        php_printf("无法获取模板文件内容,请确定模板文件存在.");
+        RETURN_FALSE
+    }
+
     /* Compile the included file into PHP opcodes */
     zend_file_handle t_file_handle;
-    t_file_handle.filename = (const char *)templ;
+    t_file_handle.filename = templ;
     t_file_handle.opened_path = NULL;
     t_file_handle.handle.fp = NULL;
     t_file_handle.free_filename = 0;
@@ -136,11 +142,6 @@ SPEED_METHOD(View, partial)
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &templ, &templ_len) == FAILURE) {
         return ;
     }
-    char real_path[MAXPATHLEN];
-    if (!VCWD_REALPATH(templ, real_path)) {
-        php_printf("无法获取模板文件内容,请确定模板文件存在.");
-        RETURN_FALSE
-    }
 
     /* render the file */
     zval *variables = zend_read_property(speed_view_ce, getThis(), ZEND_STRL(SPEED_VIEW_VARIABLES), 1, NULL);
@@ -159,12 +160,6 @@ SPEED_METHOD(View, render)
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s|z", &templ, &templ_len, &vars) == FAILURE) {
         return ;
     }
-    char real_path[MAXPATHLEN];
-    if (!VCWD_REALPATH(templ, real_path)) {
-        php_printf("无法获取模板文件内容,请确定模板文件存在.");
-        RETURN_FALSE
-    }
-
     /* render the file */
     zval *variables = zend_read_property(speed_view_ce, getThis(), ZEND_STRL(SPEED_VIEW_VARIABLES), 1, NULL);
     speed_view_include_file(templ, vars, variables);
@@ -193,14 +188,6 @@ SPEED_METHOD(View, setVar)
     if (add_assoc_zval_ex(variables, ZSTR_VAL(var_name), ZSTR_LEN(var_name), var_value) == FAILURE) {
         RETURN_FALSE
     }
-
-    /* In the zend engin, when you want to keep the passed variables into the property, you must
-       do the following steps:
-     */
-    zval persons;
-    array_init(&persons);
-    ZVAL_COPY(&persons, variables);
-    zend_update_property(speed_view_ce, getThis(), ZEND_STRL(SPEED_VIEW_VARIABLES), &persons);
 }
 /*}}}*/
 
