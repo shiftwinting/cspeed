@@ -1,0 +1,13 @@
+// $Id$
+// vim:ft=javascript
+
+// If your extension references something external, use ARG_WITH
+// ARG_WITH("speed", "for speed support", "no");
+
+// Otherwise, use ARG_ENABLE
+// ARG_ENABLE("speed", "enable speed support", "no");
+
+if (PHP_SPEED != "no") {
+	EXTENSION("speed", "speed.c", PHP_EXTNAME_SHARED, "/DZEND_ENABLE_STATIC_TSRMLS_CACHE=1");
+}
+
