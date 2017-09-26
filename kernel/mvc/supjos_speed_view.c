@@ -193,14 +193,6 @@ SPEED_METHOD(View, setVar)
     if (add_assoc_zval_ex(variables, ZSTR_VAL(var_name), ZSTR_LEN(var_name), var_value) == FAILURE) {
         RETURN_FALSE
     }
-
-    /* In the zend engin, when you want to keep the passed variables into the property, you must
-       do the following steps:
-     */
-    zval persons;
-    array_init(&persons);
-    ZVAL_COPY(&persons, variables);
-    zend_update_property(speed_view_ce, getThis(), ZEND_STRL(SPEED_VIEW_VARIABLES), &persons);
 }
 /*}}}*/
 
