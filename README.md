@@ -31,7 +31,7 @@
  	  	}
  	  });
  	  
-### IOC 注入容器类 ###
+###IOC 注入容器类###
 	
 	$di = new supjos\tool\Di();
 	
