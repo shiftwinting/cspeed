@@ -231,6 +231,7 @@ PHP_MINIT_FUNCTION(speed)
     SPEED_STARTUP(request);
     SPEED_STARTUP(response);
     SPEED_STARTUP(model);
+    SPEED_STARTUP(mysql);
     SPEED_STARTUP(view);
     SPEED_STARTUP(controller);
     SPEED_STARTUP(callback);

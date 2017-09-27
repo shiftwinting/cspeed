@@ -29,13 +29,93 @@
 
 /*{{{ ARG_INFO
  */
-SPEED_BEGIN_ARG_INFO_EX(arginfo_speed_model_construct, 0, 0, 0)
+SPEED_BEGIN_ARG_INFO_EX(arginfo_speed_model_select, 0, 0, 0)
+    SPEED_ARG_INFO(0, fields)
+SPEED_END_ARG_INFO()
+
+SPEED_BEGIN_ARG_INFO_EX(arginfo_speed_model_from, 0, 0, 0)
+    SPEED_ARG_INFO(0, table)
+SPEED_END_ARG_INFO()
+
+SPEED_BEGIN_ARG_INFO_EX(arginfo_speed_model_where, 0, 0, 0)
+    SPEED_ARG_INFO(0, conditions)
+SPEED_END_ARG_INFO()
+
+SPEED_BEGIN_ARG_INFO_EX(arginfo_speed_model_groupby, 0, 0, 0)
+    SPEED_ARG_INFO(0, by)
+SPEED_END_ARG_INFO()
+
+SPEED_BEGIN_ARG_INFO_EX(arginfo_speed_model_having, 0, 0, 0)
+    SPEED_ARG_INFO(0, having)
+SPEED_END_ARG_INFO()
+
+SPEED_BEGIN_ARG_INFO_EX(arginfo_speed_model_orderby, 0, 0, 0)
+    SPEED_ARG_INFO(0, orderby)
+SPEED_END_ARG_INFO()
+
+SPEED_BEGIN_ARG_INFO_EX(arginfo_speed_model_limit, 0, 0, 0)
+    SPEED_ARG_INFO(0, limit)
 SPEED_END_ARG_INFO()
 /*}}}*/
 
-/*{{{ proto Model::__construct()
+/*{{{ proto Model::select()
+    Set the select fields for the SELECT query
  */
-SPEED_METHOD(Model, __construct)
+SPEED_METHOD(Model, select)
+{
+
+}
+/*}}}*/
+
+/*{{{ proto Model::from()
+    Set the select fields for which table
+ */
+SPEED_METHOD(Model, from)
+{
+
+}
+/*}}}*/
+
+/*{{{ proto Model::where()
+    Set the select fields on which conditions
+ */
+SPEED_METHOD(Model, where)
+{
+
+}
+/*}}}*/
+
+/*{{{ proto Model::groupBy()
+    Set the select fields on which groupby conditions
+ */
+SPEED_METHOD(Model, groupBy)
+{
+
+}
+/*}}}*/
+
+/*{{{ proto Model::having()
+    Set the select fields on which having conditions
+ */
+SPEED_METHOD(Model, having)
+{
+
+}
+/*}}}*/
+
+/*{{{ proto Model::orderBy()
+    Set the select fields on which orderBy conditions
+ */
+SPEED_METHOD(Model, orderBy)
+{
+
+}
+/*}}}*/
+
+/*{{{ proto Model::limit()
+    Set the select fields on which limit conditions
+ */
+SPEED_METHOD(Model, limit)
 {
 
 }
@@ -45,7 +125,13 @@ SPEED_METHOD(Model, __construct)
     zend_function_entry all methods for the Model class
  */
 static const zend_function_entry speed_model_functions[] = {
-    SPEED_ME(Model, __construct , arginfo_speed_model_construct , ZEND_ACC_PUBLIC)
+    SPEED_ABSTRACT_ME(Model, select , arginfo_speed_model_select)
+    SPEED_ABSTRACT_ME(Model, from , arginfo_speed_model_from)
+    SPEED_ABSTRACT_ME(Model, where , arginfo_speed_model_where)
+    SPEED_ABSTRACT_ME(Model, groupBy , arginfo_speed_model_groupby)
+    SPEED_ABSTRACT_ME(Model, having , arginfo_speed_model_having)
+    SPEED_ABSTRACT_ME(Model, orderBy , arginfo_speed_model_orderby)
+    SPEED_ABSTRACT_ME(Model, limit , arginfo_speed_model_limit)
 
     SPEED_FE_END
 };
@@ -58,7 +144,7 @@ SPEED_STARTUP_FUNCTION(model)
 {
     zend_class_entry ce;
     INIT_NS_CLASS_ENTRY(ce, "supjos\\mvc", "Model", speed_model_functions);
-    speed_model_ce = zend_register_internal_class(&ce);
+    speed_model_ce = zend_register_internal_interface(&ce);
 }
 /*}}}*/
 

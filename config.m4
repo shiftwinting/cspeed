@@ -61,14 +61,15 @@ if test "$PHP_SPEED" != "no"; then
 
   dnl PHP_NEW_EXTENSION(speed, speed.c, $ext_shared,, -DZEND_ENABLE_STATIC_TSRMLS_CACHE=1)
   PHP_NEW_EXTENSION(speed, 
-    speed.c                              \
-    kernel/net/supjos_speed_request.c    \
-    kernel/net/supjos_speed_response.c   \
-    kernel/mvc/supjos_speed_controller.c \
-    kernel/mvc/supjos_speed_callback.c   \
-    kernel/tool/supjos_speed_di.c        \
-    kernel/mvc/supjos_speed_view.c       \
-    kernel/mvc/supjos_speed_model.c      \
+    speed.c                                   \
+    kernel/net/supjos_speed_request.c         \
+    kernel/net/supjos_speed_response.c        \
+    kernel/mvc/supjos_speed_controller.c      \
+    kernel/mvc/supjos_speed_callback.c        \
+    kernel/tool/supjos_speed_di.c             \
+    kernel/mvc/supjos_speed_view.c            \
+    kernel/mvc/supjos_speed_model.c           \
+    kernel/mvc/supjos_speed_model_mysql.c     \
     kernel/mvc/supjos_speed_app.c,
   $ext_shared)
   PHP_ADD_BUILD_DIR([$ext_builddir/kernel/mvc])

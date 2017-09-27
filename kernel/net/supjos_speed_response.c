@@ -35,6 +35,10 @@ SPEED_BEGIN_ARG_INFO_EX(arginfo_speed_response_setjsondata, 0, 0, 1)
     SPEED_ARG_INFO(0, vars)
 SPEED_END_ARG_INFO()
 
+SPEED_BEGIN_ARG_INFO_EX(arginfo_speed_response_setrawdata, 0, 0, 1)
+    SPEED_ARG_INFO(0, vars)
+SPEED_END_ARG_INFO()
+
 SPEED_BEGIN_ARG_INFO_EX(arginfo_speed_response_send, 0, 0, 0)
 SPEED_END_ARG_INFO()
 
@@ -56,7 +60,17 @@ SPEED_METHOD(Response, setJsonData)
     if (Z_TYPE_P(data) != IS_ARRAY) { /* The data must be array type data */
         RETURN_FALSE
     }
-    zend_update_property(speed_response_ce, getThis(), ZEND_STRL(SPEED_RESPONSE_DATA), data);
+    /* For the reason that the data which you want to send were JSON, so turn the data into JSON format */
+    zval retval;
+    SPEED_CALL_FUNCTION(NULL, "json_encode", &retval)
+        uint32_t param_count = 1;
+        zval params[] = {
+            *data
+        };
+    SPEED_END_CALL_FUNCTION();
+
+    /* setJsonData will store the JSON data into the RESPONSE_DATA */
+    zend_update_property(speed_response_ce, getThis(), ZEND_STRL(SPEED_RESPONSE_DATA), &retval);
 
     /* Set the content http header into application/json;charset=utf-8 */
     zval *headers = zend_read_property(speed_response_ce, getThis(), SPEED_STRL(SPEED_RESPONSE_HEADER), 1, NULL);
@@ -70,6 +84,20 @@ SPEED_METHOD(Response, setJsonData)
 }
 /* }}}*/
 
+/* {{{ proto Response::setRawData($data)
+    Set the RAW formatter data
+ */
+SPEED_METHOD(Response, setRawData)
+{
+    zval *raw_data = NULL;
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "z", &raw_data) == FAILURE) {
+        return ;
+    }
+    zend_update_property(speed_response_ce, getThis(), SPEED_STRL(SPEED_RESPONSE_DATA), raw_data);
+    RETURN_TRUE
+}
+/*}}}*/
+
 /* {{{ proto Response::send()
     Send the content data in the Response to the user-client, usually browser
  */
@@ -77,28 +105,18 @@ SPEED_METHOD(Response, send)
 {
     zval *data = zend_read_property(speed_response_ce, getThis(), ZEND_STRL(SPEED_RESPONSE_DATA), 0, NULL);
     if (!ZVAL_IS_NULL(data)) {
-        if (Z_TYPE_P(data) == IS_ARRAY) {
-            /* array data */
-            zval retval;
-            SPEED_CALL_FUNCTION(NULL, "json_encode", &retval)
-                uint32_t param_count = 1;
-                zval params[] = {
-                    *data
-                };
-            SPEED_END_CALL_FUNCTION();
-            sapi_header_line ctr = {0};
-            /* Reading the property from this class */
-            zval *headers = zend_read_property(speed_response_ce, getThis(), SPEED_STRL(SPEED_RESPONSE_HEADER), 1, NULL);
-            if (!ZVAL_IS_NULL(headers)) {
-                zend_string *key;
-                zval *value;
-                ZEND_HASH_FOREACH_STR_KEY_VAL(Z_ARRVAL_P(headers), key, value) {
-                    SPEED_HTTP_HEADER(ctr, ZSTR_VAL(key), Z_STRVAL_P(value), 200);
-                } ZEND_HASH_FOREACH_END();
-            }
-            php_write(Z_STRVAL(retval), Z_STRLEN(retval));
-            efree(ctr.line);
+        sapi_header_line ctr = {0};
+        /* Reading the property from this class */
+        zval *headers = zend_read_property(speed_response_ce, getThis(), SPEED_STRL(SPEED_RESPONSE_HEADER), 1, NULL);
+        if (!ZVAL_IS_NULL(headers)) {
+            zend_string *key;
+            zval *value;
+            ZEND_HASH_FOREACH_STR_KEY_VAL(Z_ARRVAL_P(headers), key, value) {
+                SPEED_HTTP_HEADER(ctr, ZSTR_VAL(key), Z_STRVAL_P(value), 200);
+            } ZEND_HASH_FOREACH_END();
         }
+        php_write(Z_STRVAL_P(data), Z_STRLEN_P(data));
+        efree(ctr.line);
     }
 }
 /*}}}*/
@@ -128,6 +146,7 @@ SPEED_METHOD(Response, setHeader)
  */
 static const zend_function_entry speed_response_functions[] = {
     SPEED_ME(Response, setJsonData, arginfo_speed_response_setjsondata, ZEND_ACC_PUBLIC)
+    SPEED_ME(Response, setRawData, arginfo_speed_response_setrawdata, ZEND_ACC_PUBLIC)
     SPEED_ME(Response, send, arginfo_speed_response_send, ZEND_ACC_PUBLIC)
     SPEED_ME(Response, setHeader, arginfo_speed_response_setheader, ZEND_ACC_PUBLIC)
     SPEED_FE_END

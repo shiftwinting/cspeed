@@ -30,18 +30,19 @@
 
 /* {{{
     Common function to render the file or the file with variables
+    ret means to get the file data
 */
-void speed_view_include_file(const char *templ, zval *vars, zval *variables)
+void speed_view_include_file(const char *templ, zval *vars, zval *variables, zval *ret)
 {
     char real_path[MAXPATHLEN];
     if (!VCWD_REALPATH(templ, real_path)) {
-        php_printf("无法获取模板文件内容,请确定模板文件存在.");
-        RETURN_FALSE
+        php_printf("Can't find the templeate file：[ %s ]", templ);
+        return ;
     }
 
     /* Compile the included file into PHP opcodes */
     zend_file_handle t_file_handle;
-    t_file_handle.filename = templ;
+    t_file_handle.filename = (const char *)templ;
     t_file_handle.opened_path = NULL;
     t_file_handle.handle.fp = NULL;
     t_file_handle.free_filename = 0;
@@ -112,20 +113,42 @@ void speed_view_include_file(const char *templ, zval *vars, zval *variables)
     zval result;
     ZVAL_UNDEF(&result);
 
+    if (ret && php_output_start_user(NULL, 0, PHP_OUTPUT_HANDLER_STDFLAGS) == FAILURE) {
+        php_error_docref("ref.outcontrol", E_WARNING, "Failed to call ob_start()");
+        return ;
+    }
+
     zend_init_execute_data(include_call, op_array, &result);
     ZEND_ADD_CALL_FLAG(include_call, ZEND_CALL_TOP);
     zend_execute_ex(include_call);
     zend_vm_stack_free_call_frame(include_call);
+
+    if (ret) { /* Store the data into the ret zval struct and discard the data in the output */
+        if (php_output_get_contents(ret) == FAILURE) {
+            php_output_end();
+            php_error_docref(NULL, E_WARNING, "Can't fetch the ob_data");
+            return ;
+        }
+
+        if (php_output_discard() != SUCCESS ) {
+            return ;
+        }
+    }
 }
 
 /* {{{ ARG_INFO */
-SPEED_BEGIN_ARG_INFO_EX(arginfo_speed_view_render, 0, 0, 2)
+SPEED_BEGIN_ARG_INFO_EX(arginfo_speed_view_render, 0, 0, 1)
     SPEED_ARG_INFO(0, template)
     SPEED_ARG_INFO(0, vars)
 SPEED_END_ARG_INFO()
 
 SPEED_BEGIN_ARG_INFO_EX(arginfo_speed_view_partial, 0, 0, 1)
     SPEED_ARG_INFO(0, templ)
+SPEED_END_ARG_INFO()
+
+SPEED_BEGIN_ARG_INFO_EX(arginfo_speed_view_getrender, 0, 0, 1)
+    SPEED_ARG_INFO(0, templ)
+    SPEED_ARG_INFO(0, vars)
 SPEED_END_ARG_INFO()
 
 SPEED_BEGIN_ARG_INFO_EX(arginfo_speed_view_setvar, 0, 0, 2)
@@ -142,10 +165,9 @@ SPEED_METHOD(View, partial)
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s", &templ, &templ_len) == FAILURE) {
         return ;
     }
-
     /* render the file */
     zval *variables = zend_read_property(speed_view_ce, getThis(), ZEND_STRL(SPEED_VIEW_VARIABLES), 1, NULL);
-    speed_view_include_file(templ, NULL, variables);
+    speed_view_include_file(templ, NULL, variables, NULL);
 }
 /*}}}*/
 
@@ -162,7 +184,26 @@ SPEED_METHOD(View, render)
     }
     /* render the file */
     zval *variables = zend_read_property(speed_view_ce, getThis(), ZEND_STRL(SPEED_VIEW_VARIABLES), 1, NULL);
-    speed_view_include_file(templ, vars, variables);
+    speed_view_include_file(templ, vars, variables, NULL);
+}
+/* }}}*/
+
+/* {{{ proto supjos\mvc\View::getRender($tmpl, $vars)
+    Use the View class to render the templates and return the result
+*/
+SPEED_METHOD(View, getRender)
+{
+    char *templ = NULL;
+    size_t templ_len;
+    zval *vars;
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "s|z", &templ, &templ_len, &vars) == FAILURE) {
+        return ;
+    }
+    /* render the file */
+    zval *variables = zend_read_property(speed_view_ce, getThis(), ZEND_STRL(SPEED_VIEW_VARIABLES), 1, NULL);
+    zval ob_data;
+    speed_view_include_file(templ, vars, variables, &ob_data);
+    RETURN_ZVAL(&ob_data, 0, 0);
 }
 /* }}}*/
 
@@ -198,6 +239,7 @@ static const zend_function_entry speed_view_functions[] = {
     SPEED_ME(View, render , arginfo_speed_view_render , ZEND_ACC_PUBLIC)
     SPEED_ME(View, partial, arginfo_speed_view_partial, ZEND_ACC_PUBLIC)
     SPEED_ME(View, setVar , arginfo_speed_view_setvar , ZEND_ACC_PUBLIC)
+    SPEED_ME(View, getRender , arginfo_speed_view_getrender , ZEND_ACC_PUBLIC)
 
     SPEED_FE_END
 };

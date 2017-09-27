@@ -35,8 +35,12 @@ zval *request_get(zend_string *get_key)
 {
     /* Get the given server path-info value */
     zval *get_variables = &PG(http_globals)[TRACK_VARS_GET];
-    /* const HashTable *ht, zend_string *key */
-    return zend_hash_find(Z_ARRVAL_P(get_variables), get_key);
+    if (!get_key) {
+        return get_variables;
+    } else {
+        /* const HashTable *ht, zend_string *key */
+        return zend_hash_find(Z_ARRVAL_P(get_variables), get_key);
+    }
 }
 /* }}} */
 
@@ -47,8 +51,12 @@ zval *request_post(zend_string *post_key)
 {
     /* Get the given server path-info value */
     zval *post_variables = &PG(http_globals)[TRACK_VARS_POST];
-    /* const HashTable *ht, zend_string *key */
-    return zend_hash_find(Z_ARRVAL_P(post_variables), post_key);
+    if (!post_key) {
+        return post_variables;
+    } else {
+        /* const HashTable *ht, zend_string *key */
+        return zend_hash_find(Z_ARRVAL_P(post_variables), post_key);
+    }
 }
 /*}}}*/
 
@@ -65,8 +73,12 @@ zval *request_server(zend_string *server_key)
     }
     /* Get the given server path-info value */
     zval *server_variables = &PG(http_globals)[TRACK_VARS_SERVER];
-    /* const HashTable *ht, zend_string *key */
-    return zend_hash_find(Z_ARRVAL_P(server_variables), server_key);
+    if (!server_key) {
+        return server_variables;
+    } else {
+        /* const HashTable *ht, zend_string *key */
+        return zend_hash_find(Z_ARRVAL_P(server_variables), server_key);
+    }
 }
 /*}}}*/
 
@@ -134,6 +146,47 @@ SPEED_END_ARG_INFO()
 
 SPEED_BEGIN_ARG_INFO_EX(arginfo_speed_request_isoptions, 0, 0, 0)
 SPEED_END_ARG_INFO()
+
+SPEED_BEGIN_ARG_INFO_EX(arginfo_speed_request_get, 0, 0, 0)
+    SPEED_ARG_INFO(0, key)
+SPEED_END_ARG_INFO()
+
+SPEED_BEGIN_ARG_INFO_EX(arginfo_speed_request_getpost, 0, 0, 0)
+    SPEED_ARG_INFO(0, key)
+SPEED_END_ARG_INFO()
+
+SPEED_BEGIN_ARG_INFO_EX(arginfo_speed_request_getquery, 0, 0, 0)
+SPEED_END_ARG_INFO()
+
+SPEED_BEGIN_ARG_INFO_EX(arginfo_speed_request_gethttphost, 0, 0, 0)
+SPEED_END_ARG_INFO()
+
+SPEED_BEGIN_ARG_INFO_EX(arginfo_speed_request_getuseragent, 0, 0, 0)
+SPEED_END_ARG_INFO()
+
+SPEED_BEGIN_ARG_INFO_EX(arginfo_speed_request_getservername, 0, 0, 0)
+SPEED_END_ARG_INFO()
+
+SPEED_BEGIN_ARG_INFO_EX(arginfo_speed_request_getserverport, 0, 0, 0)
+SPEED_END_ARG_INFO()
+
+SPEED_BEGIN_ARG_INFO_EX(arginfo_speed_request_getremoteport, 0, 0, 0)
+SPEED_END_ARG_INFO()
+
+SPEED_BEGIN_ARG_INFO_EX(arginfo_speed_request_getgateway, 0, 0, 0)
+SPEED_END_ARG_INFO()
+
+SPEED_BEGIN_ARG_INFO_EX(arginfo_speed_request_getscheme, 0, 0, 0)
+SPEED_END_ARG_INFO()
+
+SPEED_BEGIN_ARG_INFO_EX(arginfo_speed_request_getprotocol, 0, 0, 0)
+SPEED_END_ARG_INFO()
+
+SPEED_BEGIN_ARG_INFO_EX(arginfo_speed_request_getrequesturi, 0, 0, 0)
+SPEED_END_ARG_INFO()
+
+SPEED_BEGIN_ARG_INFO_EX(arginfo_speed_request_getscriptname, 0, 0, 0)
+SPEED_END_ARG_INFO()
 /* }}} */
 
 /* {{{ proto $request = new Request()
@@ -141,7 +194,7 @@ SPEED_END_ARG_INFO()
  */
 SPEED_METHOD(Request, __construct)
 {
-
+    
 }
 /* }}} */
 
@@ -194,6 +247,133 @@ SPEED_METHOD(Request, isOptions) /* {{{ */
 }
 /* }}} */
 
+/*{{{ proto Request::get($key)
+    Get the value from $_GET with the given key $key
+ */
+SPEED_METHOD(Request, get)
+{
+    zend_string *key = NULL;
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|S", &key) == FAILURE) {
+        return ;
+    }
+    RETURN_ZVAL(request_get(key), 1, 0);
+}
+/*}}}*/
+
+/* {{{ proto Request::getPost($key)
+    Get the value from the $_POST with the given key $key
+ */
+SPEED_METHOD(Request, getPost)
+{
+    zend_string *key = NULL;
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|S", &key) == FAILURE){
+        return ;
+    }
+    RETURN_ZVAL(request_post(key), 1, 0);
+}
+/*}}}*/
+
+/* {{{ proto Request::getQuery()
+    Return the QueryString in the $_SERVER surper globals
+ */
+SPEED_METHOD(Request, getQuery)
+{
+    RETURN_ZVAL(get_server_info("QUERY_STRING"), 1, 0);
+}
+/*}}}*/
+
+/* {{{ proto Request::getHost()
+    Return $_SERVER['HTTP_HOST']
+ */
+SPEED_METHOD(Request, getHost)
+{
+    RETURN_ZVAL(get_server_info("HTTP_HOST"), 1, 0);
+}
+/*}}}*/
+
+/* {{{ proto Request::getHost()
+    Return $_SERVER['HTTP_USER_AGENT']
+ */
+SPEED_METHOD(Request, getUserAgent)
+{
+    RETURN_ZVAL(get_server_info("HTTP_USER_AGENT"), 1, 0);
+}
+/*}}}*/
+
+/* {{{ proto Request::getServerName()
+    Return $_SERVER['SERVER_NAME']
+ */
+SPEED_METHOD(Request, getServerName)
+{
+    RETURN_ZVAL(get_server_info("SERVER_NAME"), 1, 0);
+}
+/*}}}*/
+
+/* {{{ proto Request::getServerPort()
+    Return $_SERVER['SERVER_PORT']
+ */
+SPEED_METHOD(Request, getServerPort)
+{
+    RETURN_ZVAL(get_server_info("SERVER_PORT"), 1, 0);
+}
+/*}}}*/
+
+/* {{{ proto Request::getRemotePort()
+    Return $_SERVER['REMOTE_PORT']
+ */
+SPEED_METHOD(Request, getRemotePort)
+{
+    RETURN_ZVAL(get_server_info("REMOTE_PORT"), 1, 0);
+}
+/*}}}*/
+
+/* {{{ proto Request::getGateway()
+    Return $_SERVER['GATEWAY_INTERFACE']
+ */
+SPEED_METHOD(Request, getGateway)
+{
+    RETURN_ZVAL(get_server_info("GATEWAY_INTERFACE"), 1, 0);
+}
+/*}}}*/
+
+/* {{{ proto Request::getScheme()
+    Return $_SERVER['REQUEST_SCHEME']
+ */
+SPEED_METHOD(Request, getScheme)
+{
+    RETURN_ZVAL(get_server_info("REQUEST_SCHEME"), 1, 0);
+}
+/*}}}*/
+
+/* {{{ proto Request::getProtocol()
+    Return $_SERVER['SERVER_PROTOCOL']
+ */
+SPEED_METHOD(Request, getProtocol)
+{
+    RETURN_ZVAL(get_server_info("SERVER_PROTOCOL"), 1, 0);
+}
+/*}}}*/
+
+/* {{{ proto Request::getRequestUri()
+    Return $_SERVER['REQUEST_URI']
+ */
+SPEED_METHOD(Request, getRequestUri)
+{
+    RETURN_ZVAL(get_server_info("REQUEST_URI"), 1, 0);
+}
+/*}}}*/
+
+/* {{{ proto Request::getScriptName()
+    Return $_SERVER['SCRIPT_NAME']
+ */
+SPEED_METHOD(Request, getScriptName)
+{
+    RETURN_ZVAL(get_server_info("SCRIPT_NAME"), 1, 0);
+}
+/*}}}*/
+
+
+
 /* {{{ The function entries of the class : supjos\Request
  */
 static const zend_function_entry speed_request_fucntions[] = {
@@ -204,6 +384,18 @@ static const zend_function_entry speed_request_fucntions[] = {
     SPEED_ME(Request, isPut, arginfo_speed_request_isput, ZEND_ACC_PUBLIC)
     SPEED_ME(Request, isHead, arginfo_speed_request_ishead, ZEND_ACC_PUBLIC)
     SPEED_ME(Request, isOptions, arginfo_speed_request_isoptions, ZEND_ACC_PUBLIC)
+    SPEED_ME(Request, get, arginfo_speed_request_get, ZEND_ACC_PUBLIC)
+    SPEED_ME(Request, getPost, arginfo_speed_request_getpost, ZEND_ACC_PUBLIC)
+    SPEED_ME(Request, getQuery, arginfo_speed_request_getquery, ZEND_ACC_PUBLIC)
+    SPEED_ME(Request, getHost, arginfo_speed_request_gethttphost, ZEND_ACC_PUBLIC)
+    SPEED_ME(Request, getUserAgent, arginfo_speed_request_getuseragent, ZEND_ACC_PUBLIC)
+    SPEED_ME(Request, getServerName, arginfo_speed_request_getservername, ZEND_ACC_PUBLIC)
+    SPEED_ME(Request, getServerPort, arginfo_speed_request_getserverport, ZEND_ACC_PUBLIC)
+    SPEED_ME(Request, getRemotePort, arginfo_speed_request_getremoteport, ZEND_ACC_PUBLIC)
+    SPEED_ME(Request, getGateway, arginfo_speed_request_getgateway, ZEND_ACC_PUBLIC)
+    SPEED_ME(Request, getScheme, arginfo_speed_request_getscheme, ZEND_ACC_PUBLIC)
+    SPEED_ME(Request, getRequestUri, arginfo_speed_request_getrequesturi, ZEND_ACC_PUBLIC)
+    SPEED_ME(Request, getScriptName, arginfo_speed_request_getscriptname, ZEND_ACC_PUBLIC)
     SPEED_FE_END
 };
 /* }}} */
