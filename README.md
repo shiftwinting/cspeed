@@ -1,5 +1,5 @@
 # CSpeed #
-	www.supjos.cn											 All Rights Reserved.
+	www.supjos.cn						All Rights Reserved.
 ------
 **CSpeed** 是一个全堆栈的C语言PHP扩展, 基于MVC模式,专为高性能的API设计开发。
 
