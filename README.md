@@ -1,9 +1,9 @@
 # CSpeed #
 	www.supjos.cn						All Rights Reserved.
 ------
-**CSpeed** 是一个全堆栈的C语言PHP扩展, 基于MVC模式,专为高性能的API设计开发。
+** CSpeed ** 是一个全堆栈的C语言PHP扩展, 基于MVC模式,专为高性能的API设计开发。
 
-一个简单的**示例**:
+一个简单的 ** 示例 **:
 	
 	/* 实例化扩展程序类 */
 	$app = new supjos\mvc\App();
@@ -31,7 +31,7 @@
  	  	}
  	  });
  	  
-###IOC 注入容器类###
+### IOC 注入容器类 ###
 	
 	$di = new supjos\tool\Di();
 	
