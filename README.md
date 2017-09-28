@@ -55,7 +55,7 @@
 	$view->setVar('version', 'v12.1');
 	
 	/* 渲染视图 */
-	$view->partial('version'=>'v1.8.1');
+	$view->partial('test.phtml',['version'=>'v1.8.1']);
 	
 	/* 将视图内容进行获取而不输出 */
 	$viewData = $view->getRender('test.phtml', ['version'=>'v1.8.1', 'engine'=>'CSpeed']);
