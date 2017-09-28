@@ -1,5 +1,5 @@
 # CSpeed #
-	www.supjos.cn						All Rights Reserved.
+	www.supjos.cn			All Rights Reserved.
 ------
 **CSpeed** 是一个全堆栈的C语言PHP扩展, 基于MVC模式,专为高性能的API设计开发。
 
@@ -62,6 +62,8 @@
 	
 ###模型###
 	
+	/*下个版本考虑加入连接池功能*/
+
 	$mysql = new supjos\mvc\MySql(
 		[
 			'dsn' 	 	=>		'mysql:host=localhost;dbname=cspeed',
@@ -129,19 +131,19 @@
 	/* 是否OPTIONS请求 */
 	$request->isOptions();
 	
-	/* 获取$_GET参数 */
+	/* 获取$_GET */
 	$request->get();
 	
-	/* 是否$_POST请求 */
+	/* 获取$_POST */
 	$request->getPost();
 	
-	/* 是否QUERY_STRING请求 */
+	/* 获取QUERY_STRING */
 	$request->getQuery();
 	
-	/* 是否USER-AGENT请求 */
+	/*获取USER-AGENT */
 	$request->getUserAgent();
 	
-	/* 是否ReqeustUri请求 */
+	/* 获取ReqeustUri */
 	$request->getRequestUri();
 	
 	
