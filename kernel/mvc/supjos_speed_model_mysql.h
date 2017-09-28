@@ -19,9 +19,15 @@
 #ifndef SUPJOS_SPEED_MODEL_MYSQL_H
 #define SUPJOS_SPEED_MODEL_MYSQL_H
 
-#define SPEED_MYSQL_SELECT_DATA   "_speed_mysql_select_data"
-#define SPEED_MYSQL_FROM_DATA     "_speed_mysql_from_data"
-#define SPEED_MYSQL_WHERE_DATA    "_speed_mysql_where_data"
+#define SPEED_MYSQL_PDO_OBJECT      "__speed_mysql_pdo_object"    /* To store the PDO Object */
+
+#define SPEED_MYSQL_SELECT_DATA     "_speed_mysql_select_data"    /* To store the SQL SELECT */
+#define SPEED_MYSQL_FROM_DATA       "_speed_mysql_from_data"      /* To store the SQL FROM */
+#define SPEED_MYSQL_WHERE_DATA      "_speed_mysql_where_data"     /* To store the SQL WHERE */
+#define SPEED_MYSQL_GROUPBY_DATA    "_speed_mysql_group_by_data"  /* To store the SQL GROUP BY */
+#define SPEED_MYSQL_HAVING_DATA     "_speed_mysql_having_data"    /* To store the SQL HAVING */
+#define SPEED_MYSQL_ORDERBY_DATA    "_speed_mysql_orderby_data"   /* To store the SQL ORDERBY */
+#define SPEED_MYSQL_LIMIT_DATA      "_speed_mysql_limit_data"     /* To store the SQL LIMIT */
 
 /* {{{ The class entry for zend-engine */
 zend_class_entry *speed_mysql_ce;
