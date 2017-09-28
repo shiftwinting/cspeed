@@ -12,7 +12,7 @@
 	 *  处理GET请求, 
 	 *  第一个参数支持使用正则表达式进行URL匹配.
 	 *  第二个参数表示一个匹配URL后进行的函数操作
-	 *  第二个参数支持两种类型的参数: 匿名函数|实现 ```supjos\mvc\Callback```接口的函数
+	 *  第二个参数支持两种类型的参数: 匿名函数|实现 ```supjos\mvc\Callback```接口的类
 	 */
 	$app->get('/index/index$', function($controller){
 		echo '<div style="width:200px;margin: 0 auto;"><h1>Hello CSpeed.</h1></div>';
