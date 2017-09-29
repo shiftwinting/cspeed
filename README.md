@@ -102,9 +102,11 @@
 	$goods = $mysql->query('SELECT * FROM www_good WHERE price >:price', [ ':price'=>'8.8' ]);
 	
 	/* 原生SQL语句更新或者删除 */
-	$rows = $mysql->execute(' INSERT INTO www_good (id, price, good_name) VALUES ( :id, :price, :good_name ) ', [ ':id'=>'22', ':price'=>'89.8', ':good_name'=>'Apple' ]);
+	$rows = $mysql->execute(' INSERT INTO www_good (id, price, good_name) VALUES ( :id, :price, :good_name ) ', 
+		[ ':id'=>'22', ':price'=>'89.8', ':good_name'=>'Apple' ]);
 	
-	$rows = $mysql->execute(' UPDATE www_good SET price=:price, good_name=:good_name WHERE id=:id ', [ ':id'=>'22', ':price'=>'89.8', ':good_name'=>'Apple' ]);
+	$rows = $mysql->execute(' UPDATE www_good SET price=:price, good_name=:good_name WHERE id=:id ', 
+		[ ':id'=>'22', ':price'=>'89.8', ':good_name'=>'Apple' ]);
 	
 	/* 批量插入 */
 	$data = [];
