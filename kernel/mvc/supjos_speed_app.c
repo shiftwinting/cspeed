@@ -39,10 +39,9 @@ int deal_with_request(char *url, zval *object, char *method_name, INTERNAL_FUNCT
 
     /* Getting the current URL PATH-INFO from the server_server function */
     zval *path_info = request_path_info();
-    if (Z_ISNULL_P(path_info)) {
+    if (!path_info) {
         php_error_docref(0, E_ERROR, "The server must support the PATH_INFO routine.");
     }
-
     /* Use the regular expression to match the url-path-info */
     zval is_match_path;
     SPEED_CALL_FUNCTION(NULL, "preg_match", &is_match_path)
@@ -110,6 +109,31 @@ void deal_with_init_method(char *url, zval *function, INTERNAL_FUNCTION_PARAMETE
 char *speed_app_get_cwd()
 {
     return VCWD_GETCWD(NULL, 0);
+}
+/*}}}*/
+
+/* {{{ Require the file
+ */
+void require_file(char *file_path)
+{
+    /* Do the require operation */
+    zend_file_handle include_file_handle;
+    include_file_handle.handle.fp     = NULL;
+    include_file_handle.filename      = file_path;
+    include_file_handle.opened_path   = NULL;
+    include_file_handle.type          = ZEND_HANDLE_FILENAME;
+    include_file_handle.free_filename = 0;
+
+    zend_op_array *op_array;
+    op_array = zend_compile_file(&include_file_handle, ZEND_REQUIRE);
+    zend_execute_data *require = zend_vm_stack_push_call_frame(ZEND_CALL_NESTED_CODE | ZEND_CALL_HAS_SYMBOL_TABLE, (zend_function *)op_array, 0, NULL, NULL);
+
+    zval result;
+    ZVAL_UNDEF(&result);
+    zend_init_execute_data(require, op_array, &result);
+    ZEND_ADD_CALL_FLAG(require, ZEND_CALL_TOP);
+    zend_execute_ex(require);
+    zend_vm_stack_free_call_frame(require);
 }
 /*}}}*/
 
@@ -358,24 +382,7 @@ SPEED_METHOD(App, autoload)
             if (!VCWD_REALPATH(ZSTR_VAL(absolute_path), real_path)) {
                 continue;
             }
-            /* Do the require operation */
-            zend_file_handle include_file_handle;
-            include_file_handle.handle.fp     = NULL;
-            include_file_handle.filename      = ZSTR_VAL(absolute_path);
-            include_file_handle.opened_path   = NULL;
-            include_file_handle.type          = ZEND_HANDLE_FILENAME;
-            include_file_handle.free_filename = 0;
-
-            zend_op_array *op_array;
-            op_array = zend_compile_file(&include_file_handle, ZEND_REQUIRE);
-            zend_execute_data *require = zend_vm_stack_push_call_frame(ZEND_CALL_NESTED_CODE | ZEND_CALL_HAS_SYMBOL_TABLE, (zend_function *)op_array, 0, NULL, NULL);
-
-            zval result;
-            ZVAL_UNDEF(&result);
-            zend_init_execute_data(require, op_array, &result);
-            ZEND_ADD_CALL_FLAG(require, ZEND_CALL_TOP);
-            zend_execute_ex(require);
-            zend_vm_stack_free_call_frame(require);
+            require_file(ZSTR_VAL(absolute_path));
         } ZEND_HASH_FOREACH_END();
         zend_string_release(absolute_path);
     } else if (include_dirs && (Z_TYPE_P(include_dirs) == IS_STRING)) {
@@ -394,24 +401,7 @@ SPEED_METHOD(App, autoload)
             RETURN_FALSE
         }
         /* Do the require operation */
-        zend_file_handle include_file_handle;
-        include_file_handle.handle.fp     = NULL;
-        include_file_handle.filename      = ZSTR_VAL(absolute_path);
-        include_file_handle.opened_path   = NULL;
-        include_file_handle.type          = ZEND_HANDLE_FILENAME;
-        include_file_handle.free_filename = 0;
-
-        zend_op_array *op_array;
-        op_array = zend_compile_file(&include_file_handle, ZEND_REQUIRE);
-        zend_execute_data *require = zend_vm_stack_push_call_frame(ZEND_CALL_NESTED_CODE | ZEND_CALL_HAS_SYMBOL_TABLE, (zend_function *)op_array, 0, NULL, NULL);
-
-        zval result;
-        ZVAL_UNDEF(&result);
-        zend_init_execute_data(require, op_array, &result);
-        ZEND_ADD_CALL_FLAG(require, ZEND_CALL_TOP);
-        zend_execute_ex(require);
-        zend_vm_stack_free_call_frame(require);
-        zend_string_release(absolute_path);
+        require_file(ZSTR_VAL(absolute_path));
     }
 }
 /*}}}*/

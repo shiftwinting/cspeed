@@ -85,15 +85,7 @@ zval *request_server(zend_string *server_key)
 /* Get the PATH-INFO */
 zval *request_path_info() /* {{{ */
 {
-    zval *path_info;
-    path_info = request_server(zend_string_init(ZEND_STRL("PATH_INFO"), 0));
-    if (Z_ISNULL_P(path_info)) {
-        path_info = request_server(zend_string_init(ZEND_STRL("REQUEST_PATH_INFO"), 0));
-        if (Z_ISNULL_P(path_info)) {
-            return NULL;
-        }
-    }
-    return path_info;
+    return request_server(zend_string_init(ZEND_STRL("PATH_INFO"), 0));
 }
 /*}}}*/
 
@@ -110,9 +102,9 @@ zval *get_server_info(char *key)
 zend_bool request_is(char *r_method)
 {
     zval *request_method = get_server_info("REQUEST_METHOD");
-    if (ZVAL_IS_NULL(request_method)) {
+    if ( request_method && ZVAL_IS_NULL(request_method)) {
         request_method = get_server_info("HTTP_X_HTTP_METHOD_OVERRIDE");
-        if (ZVAL_IS_NULL(request_method)) {
+        if (request_method && ZVAL_IS_NULL(request_method)) {
             if (STRING_IS_EQUAL(r_method, "GET")){
                 return 1;  /* default is GET request */
             } else {
@@ -120,7 +112,7 @@ zend_bool request_is(char *r_method)
             }
         }
     }
-    return STRING_IS_EQUAL(Z_STRVAL_P(request_method), r_method);
+    return STRING_IS_EQUAL(r_method, Z_STRVAL_P(request_method));
 }
 /*}}}*/
 
@@ -252,7 +244,7 @@ SPEED_METHOD(Request, isOptions) /* {{{ */
  */
 SPEED_METHOD(Request, get)
 {
-    zend_string *key = NULL;
+    zend_string *key;
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|S", &key) == FAILURE) {
         return ;
     }
@@ -265,7 +257,7 @@ SPEED_METHOD(Request, get)
  */
 SPEED_METHOD(Request, getPost)
 {
-    zend_string *key = NULL;
+    zend_string *key;
     if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "|S", &key) == FAILURE){
         return ;
     }

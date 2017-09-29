@@ -63,10 +63,11 @@ ZEND_TSRMLS_CACHE_EXTERN()
 #define SPEED_ARG_INFO          ZEND_ARG_INFO
 #define SPEED_END_ARG_INFO      ZEND_END_ARG_INFO
 
-#define SPEED_STRL(str)              (str), (strlen(str)) /* to repalce the ZEND_STRL */
+#define SPEED_STRL(str)            (str), (strlen(str)) /* to repalce the ZEND_STRL */
 
 #define STRING_IS_EMPTY(str)       ((*str) == '\0') /* Judge the char *str is emtpy or not. */
 #define STRING_IS_EQUAL(dest, src) ( (dest == src) || ( !memcmp(dest, src, strlen(src)) ) ) /* Judge two char *string is equal or not. */
+#define SPEED_PATH_IS_ABSOLUTE(path) ((*path) == '/') /* Absolute path or not. */
 
 #define SPEED_METHOD_IN_OBJECT(object, method_name) ( ( Z_OBJ_HT_P(object)->get_method(&Z_OBJ_P(object), zend_string_init(ZEND_STRL(method_name), 0), NULL)) != NULL ) /* Judge whether the method is in object */
 /* }}} */
