@@ -78,9 +78,9 @@
 
 	$mysql = new supjos\mvc\MySql(
 		[
-			'dsn' 	 	=>		'mysql:host=localhost;dbname=cspeed',
-			'username'	=>		'root',
-			'password'	=>		'Root@localhost'
+			'dsn' 	   => 'mysql:host=localhost;dbname=cspeed',
+			'username' => 'root',
+			'password' => 'Root@localhost'
 		]
 	);
 	
