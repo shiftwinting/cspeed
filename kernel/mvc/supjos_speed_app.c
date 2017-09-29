@@ -124,8 +124,7 @@ void require_file(char *file_path)
     include_file_handle.type          = ZEND_HANDLE_FILENAME;
     include_file_handle.free_filename = 0;
 
-    zend_op_array *op_array;
-    op_array = zend_compile_file(&include_file_handle, ZEND_REQUIRE);
+    zend_op_array *op_array = zend_compile_file(&include_file_handle, ZEND_REQUIRE);
     if (op_array) {
         if (include_file_handle.handle.stream.handle) {
             if (!include_file_handle.opened_path) {
