@@ -43,7 +43,7 @@
  	  	}
  	  });
  	  
-###IOC 注入容器类###
+### IOC注入容器类 ###
 	
 	$di = new supjos\tool\Di();
 	
@@ -55,7 +55,7 @@
 	/* 当需要从容器中获取时 */
 	$view = $di->get('view');
 	
-###View###
+### View ###
 	
 	/* 实例化视图类 */
 	$view = new supjos\mvc\View();
@@ -72,7 +72,7 @@
 	/* 将视图内容进行获取而不输出 */
 	$viewData = $view->getRender('test.phtml', ['version'=>'v1.8.1', 'engine'=>'CSpeed']);
 	
-###模型###
+### 模型 ###
 	
 	/*下个版本考虑加入连接池功能*/
 
@@ -118,7 +118,7 @@
 	}
 	$rows = $mysql->insert('www_product', ['id', 't_id', 'r_id', 'j_id], $data);
 	
-###HTTP-REQUEST | HTTP_RESPOSNE###
+### REQUEST、RESPOSNE ###
 	
 	/**
 	 * HTTP REQEUST
