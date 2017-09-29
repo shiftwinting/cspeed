@@ -3,11 +3,23 @@
 ------
 **CSpeed** 是一个全堆栈的C语言PHP扩展, 基于MVC模式,专为高性能的API设计开发。
 
-一个简单的 ** 示例 **:
+一个简单的 **示例** :
 	
 	/* 实例化扩展程序类 */
 	$app = new supjos\mvc\App();
 	
+	/* 将当前目录设置为引入目录， 方法可以多次调用 */
+	$app->setIncludeDirs('.');	
+	
+	/* 或者一次传入多个目录 */
+	$app->setIncludeDirs([
+		'.',
+		'/home/cspeed/controllers',
+		'/home/cspeed/models'
+	]);
+	
+	/* 设置了引入目录后，以后的类CSpeed都能从以上目录自动加载 */
+
 	/**
 	 *  处理GET请求, 
 	 *  第一个参数支持使用正则表达式进行URL匹配.
@@ -19,8 +31,8 @@
 	});
 	
 	/**
-	  * 或者如下的形式,方便进行MVC三层开发
- 	  */
+	 * 或者如下的形式,方便进行MVC三层开发
+ 	 */
  	  $app->get('/index', new class implements supjos\mvc\Callback(){
  	  	/** 
  	  	 * 接口仅包含一个方法 : init
