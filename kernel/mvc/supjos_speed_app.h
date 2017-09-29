@@ -27,7 +27,7 @@ zend_class_entry *speed_app_ce;
 
 
 #define SPEED_APP_INCLUDE_PATH    "_app_include_path"     /* The path which the speed to include the Class file */
-
+#define SPEED_APP_ALIASES         "_app_aliases"          /* All aliases which the speed determine to include the Class file */
 
 #endif
 

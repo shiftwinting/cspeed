@@ -144,6 +144,19 @@ void require_file(char *file_path)
 }
 /*}}}*/
 
+/*{{{ proto Return the result of the reservsed slash char* */
+char *reserve_slash_char(char *src)
+{
+    int i;
+    for (i = 0; src[i] != '\0'; i++ ){
+        if ( src[i] == '\\' ) {
+            src[i] = '/';
+        }
+    }
+    return src;
+}
+/*}}}*/
+
 /* {{{ ARG_INFO
  */
 SPEED_BEGIN_ARG_INFO_EX(arginfo_speed_app_contructor, 0, 0, 0)
@@ -184,6 +197,15 @@ SPEED_END_ARG_INFO()
 SPEED_BEGIN_ARG_INFO_EX(arginfo_speed_app_autoload, 0, 0, 1)
     SPEED_ARG_INFO(0, class)
 SPEED_END_ARG_INFO()
+
+SPEED_BEGIN_ARG_INFO_EX(arginfo_speed_app_autoload_t, 0, 0, 1)
+    SPEED_ARG_INFO(0, class)
+SPEED_END_ARG_INFO()
+
+SPEED_BEGIN_ARG_INFO_EX(arginfo_speed_app_setalias, 0, 0, 2)
+    SPEED_ARG_INFO(0, alias)
+    SPEED_ARG_INFO(0, path)
+SPEED_END_ARG_INFO()
 /* }}}*/
 
 /* {{{ proto $app = new supjos\App()
@@ -197,7 +219,7 @@ SPEED_METHOD(App, __construct)
         zval callback;
         array_init(&callback);
         add_next_index_zval(&callback, getThis());
-        add_next_index_string(&callback, "autoload");
+        add_next_index_string(&callback, "_autoload");
         uint32_t param_count = 1;
         zval params[] = {
             callback
@@ -355,7 +377,81 @@ SPEED_METHOD(App, setIncludeDirs)
 }
 /*}}}*/
 
-/*{{{ proto App::autoload($className)
+/* {{{ proto App::_autoload($className)
+    Auto load the file using the namespace
+ */
+SPEED_METHOD(App, _autoload)
+{
+    zval *class_name;
+
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "z", &class_name) == FAILURE) {
+        return ;
+    }
+
+    if (Z_TYPE_P(class_name) != IS_STRING) {
+        RETURN_FALSE
+    }
+
+    zend_string *full_file_path;
+
+    if ( strchr(Z_STRVAL_P(class_name), '\\') == NULL ) {                           /* Not found the \ slash */
+        full_file_path = strpprintf(0, "./%s.php", Z_STRVAL_P(class_name));
+    } else if ( *(Z_STRVAL_P(class_name)) == '\\' ) {
+        full_file_path = strpprintf(0, "./%s.php", Z_STRVAL_P(class_name) + 1);
+    } else {
+        zval *all_aliases = zend_read_property(speed_app_ce, getThis(), SPEED_STRL(SPEED_APP_ALIASES), 1, NULL);
+        if (Z_ISNULL_P(all_aliases)) {
+            array_init(all_aliases);
+            add_assoc_string_ex(all_aliases, SPEED_STRL("app"), speed_app_get_cwd());           /* Default set the app namespace alias */
+            zend_update_property(speed_app_ce, getThis(), SPEED_STRL(SPEED_APP_ALIASES), all_aliases);
+        }
+        zend_string *alias_name;
+        zval *alias_path;
+
+        char *slash_pos = strchr(Z_STRVAL_P(class_name), '\\');
+        if (slash_pos) {
+            char *alias = (char *)malloc(sizeof(char) * (slash_pos - Z_STRVAL_P(class_name) + 1) );
+            memset(alias, 0, slash_pos - Z_STRVAL_P(class_name) + 1);
+            memcpy(alias, Z_STRVAL_P(class_name), slash_pos - Z_STRVAL_P(class_name));
+
+            alias_path = zend_hash_find(Z_ARRVAL_P(all_aliases), zend_string_init(SPEED_STRL(alias), 0));
+            if (alias_path) {
+                /* This file's namespace alias path */
+                int size = strlen(Z_STRVAL_P(class_name)) - (slash_pos - Z_STRVAL_P(class_name)) + strlen(Z_STRVAL_P(alias_path)) + 5;
+                char *result_full_path = (char *)malloc(sizeof(char) *  size);
+                memset(result_full_path, 0, size);
+
+                memcpy(result_full_path, Z_STRVAL_P(alias_path), strlen(Z_STRVAL_P(alias_path)));
+                strncat(result_full_path, Z_STRVAL_P(class_name) + (slash_pos - Z_STRVAL_P(class_name)), strlen(Z_STRVAL_P(class_name)) - (slash_pos - Z_STRVAL_P(class_name)));
+                strncat(result_full_path, ".php", strlen(".php"));
+
+                reserve_slash_char(result_full_path);
+                /* Whether the file is exists or not. */
+                char real_path[MAXPATHLEN];
+                if (!VCWD_REALPATH(result_full_path, real_path)) {
+                    zend_printf("File %s not exists", result_full_path);
+                    zval retval;
+                    zval func_exit_name;
+                    ZVAL_STRING(&func_exit_name, "exit");
+                    call_user_function(CG(function_table), NULL, &func_exit_name, &retval, 0, NULL);
+                    zval_ptr_dtor(&retval);
+                }
+                require_file(result_full_path);
+                free(result_full_path);
+            } else {
+                zend_printf("Namespace %s not found.", alias);
+                zval retval;
+                zval func_exit_name;
+                ZVAL_STRING(&func_exit_name, "exit");
+                call_user_function(CG(function_table), NULL, &func_exit_name, &retval, 0, NULL);
+                zval_ptr_dtor(&retval);
+            }
+            free(alias);
+        }
+    }
+}
+
+/*{{{ proto App::autoload($className) [Not used]
     To register the class and autoload the class
  */
 SPEED_METHOD(App, autoload)
@@ -413,6 +509,34 @@ SPEED_METHOD(App, autoload)
 }
 /*}}}*/
 
+/* {{{ proto App::setAlias($alias, $path) 
+ */
+SPEED_METHOD(App, setAlias)
+{
+    zval *alias_name, *alias_path;
+    if (zend_parse_parameters(ZEND_NUM_ARGS() TSRMLS_CC, "zz", &alias_name, &alias_path) == FAILURE) {
+        return ;
+    }
+    if ( ( Z_TYPE_P(alias_name) != IS_STRING ) || ( Z_TYPE_P(alias_path) != IS_STRING ) ) {
+        RETURN_FALSE
+    }
+    if ( strchr(Z_STRVAL_P(alias_name), '@') == NULL ) {
+        RETURN_FALSE
+    }
+    zval *all_aliases = zend_read_property(speed_app_ce, getThis(), SPEED_STRL(SPEED_APP_ALIASES), 1, NULL);
+    if (Z_ISNULL_P(all_aliases)) {
+        array_init(all_aliases);
+        add_assoc_string_ex(all_aliases, SPEED_STRL("app"), speed_app_get_cwd());           /* Default set the app namespace alias */
+        zend_update_property(speed_app_ce, getThis(), SPEED_STRL(SPEED_APP_ALIASES), all_aliases);
+    }
+    if (memcmp("@app", Z_STRVAL_P(alias_name), strlen(Z_STRVAL_P(alias_name))) == 0) {
+        RETURN_FALSE
+    }
+    add_assoc_string_ex(all_aliases, SPEED_STRL(Z_STRVAL_P(alias_name) + 1), Z_STRVAL_P(alias_path));
+    RETURN_TRUE
+}
+/*}}}*/
+
 /* {{{
     The function entry of the class supjos\App
  */
@@ -426,6 +550,8 @@ static const zend_function_entry speed_app_functions[] = {
     SPEED_ME(App, options, arginfo_speed_app_options, ZEND_ACC_PUBLIC)
     SPEED_ME(App, setIncludeDirs, arginfo_speed_app_setincludedirs, ZEND_ACC_PUBLIC)
     SPEED_ME(App, autoload, arginfo_speed_app_autoload, ZEND_ACC_PRIVATE)
+    SPEED_ME(App, _autoload, arginfo_speed_app_autoload_t, ZEND_ACC_PRIVATE)
+    SPEED_ME(App, setAlias, arginfo_speed_app_setalias, ZEND_ACC_PUBLIC)
     SPEED_FE_END
 };
 /* }}} */
@@ -442,6 +568,7 @@ SPEED_STARTUP_FUNCTION(app)
 
     /* Initialise the App class's property, and set them to NULL default */
     zend_declare_property_null(speed_app_ce, SPEED_STRL(SPEED_APP_INCLUDE_PATH), ZEND_ACC_PRIVATE);
+    zend_declare_property_null(speed_app_ce, SPEED_STRL(SPEED_APP_ALIASES), ZEND_ACC_PRIVATE);
 }
 /*}}}*/
 
