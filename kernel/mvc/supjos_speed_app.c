@@ -129,7 +129,7 @@ void require_file(char *file_path)
     if (op_array) {
         if (include_file_handle.handle.stream.handle) {
             if (!include_file_handle.opened_path) {
-                include_file_handle.opened_path = zend_string_init(ZEND_STRL(templ), 0);
+                include_file_handle.opened_path = zend_string_init(SPEED_STRL(file_path), 0);
             }
             zend_hash_add_empty_element(&EG(included_files), include_file_handle.opened_path);
         }
