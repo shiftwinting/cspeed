@@ -126,6 +126,14 @@ void require_file(char *file_path)
 
     zend_op_array *op_array;
     op_array = zend_compile_file(&include_file_handle, ZEND_REQUIRE);
+    if (op_array) {
+        if (include_file_handle.handle.stream.handle) {
+            if (!include_file_handle.opened_path) {
+                include_file_handle.opened_path = zend_string_init(ZEND_STRL(templ), 0);
+            }
+            zend_hash_add_empty_element(&EG(included_files), include_file_handle.opened_path);
+        }
+    }
     zend_execute_data *require = zend_vm_stack_push_call_frame(ZEND_CALL_NESTED_CODE | ZEND_CALL_HAS_SYMBOL_TABLE, (zend_function *)op_array, 0, NULL, NULL);
 
     zval result;
