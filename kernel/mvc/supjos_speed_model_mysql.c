@@ -38,6 +38,7 @@ SPEED_BEGIN_ARG_INFO_EX(arginfo_speed_model_mysql_construct, 0, 0, 0)
 SPEED_END_ARG_INFO()
 
 SPEED_BEGIN_ARG_INFO_EX(arginfo_speed_model_mysql_select, 0, 0, 0)
+    SPEED_ARG_INFO(0, fields)
 SPEED_END_ARG_INFO()
 
 SPEED_BEGIN_ARG_INFO_EX(arginfo_speed_model_mysql_from, 0, 0, 0)
@@ -74,13 +75,18 @@ SPEED_END_ARG_INFO()
 SPEED_BEGIN_ARG_INFO_EX(arginfo_speed_model_mysql_findall, 0, 0, 0)
 SPEED_END_ARG_INFO()
 
-SPEED_BEGIN_ARG_INFO_EX(arginfo_speed_model_mysql_query, 0, 0, 0)
+SPEED_BEGIN_ARG_INFO_EX(arginfo_speed_model_mysql_query, 0, 0, 1)
+    SPEED_ARG_INFO(0, rawsql)
 SPEED_END_ARG_INFO()
 
-SPEED_BEGIN_ARG_INFO_EX(arginfo_speed_model_mysql_execute, 0, 0, 0)
+SPEED_BEGIN_ARG_INFO_EX(arginfo_speed_model_mysql_execute, 0, 0, 1)
+    SPEED_ARG_INFO(0, rawsql)
 SPEED_END_ARG_INFO()
 
-SPEED_BEGIN_ARG_INFO_EX(arginfo_speed_model_mysql_insert, 0, 0, 0)
+SPEED_BEGIN_ARG_INFO_EX(arginfo_speed_model_mysql_insert, 0, 0, 3)
+    SPEED_ARG_INFO(0, tablename)
+    SPEED_ARG_INFO(0, fields)
+    SPEED_ARG_INFO(0, data)
 SPEED_END_ARG_INFO()
 /*}}}*/
 
@@ -812,3 +818,12 @@ SPEED_STARTUP_FUNCTION(mysql)
     zend_declare_property_null(speed_mysql_ce, SPEED_STRL(SPEED_MYSQL_PDO_OBJECT), ZEND_ACC_PROTECTED);
 }
 /*}}}*/
+
+/*
+ * Local variables:
+ * tab-width: 4
+ * c-basic-offset: 4
+ * End:
+ * vim600: noet sw=4 ts=4 fdm=marker
+ * vim<600: noet sw=4 ts=4
+ */

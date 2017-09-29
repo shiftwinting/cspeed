@@ -26,6 +26,16 @@ zend_class_entry *speed_app_ce;
 /*}}}*/
 
 
+#define SPEED_APP_INCLUDE_PATH    "_app_include_path"     /* The path which the speed to include the Class file */
 
 
 #endif
+
+/*
+ * Local variables:
+ * tab-width: 4
+ * c-basic-offset: 4
+ * End:
+ * vim600: noet sw=4 ts=4 fdm=marker
+ * vim<600: noet sw=4 ts=4
+ */
