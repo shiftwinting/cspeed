@@ -2,6 +2,7 @@
 	www.supjos.cn			All Rights Reserved.
 ------
 **CSpeed** 是一个全堆栈的C语言PHP扩展, 基于MVC模式,专为高性能的API设计开发。
+开发环境： **Linux、PHP7.1.5、Nginx**
 
 一个简单的 **示例** :
 	
