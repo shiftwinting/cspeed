@@ -11,7 +11,7 @@
 	
 	/* 命名空间引入类使用方式如下： 
      * 系统默认内置app命名空间别名指向当前index.php入口文件目录
-     * 用户可以通过$app->setAlias('backend', __DIR__ . '/backend');来设置不同的模块别名
+     * 用户可以通过$app->setAlias('@backend', __DIR__ . '/backend');来设置不同的模块别名
      * 如果定义如下一个类
      * namespace app;
      * class Cspeed{
