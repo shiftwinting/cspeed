@@ -9,18 +9,21 @@
 	/* 实例化扩展程序类 */
 	$app = new supjos\mvc\App();
 	
-	/* 将当前目录设置为引入目录， 方法可以多次调用 */
-	$app->setIncludeDirs('.');	
+	/* 命名空间引入类使用方式如下： 
+     * 系统默认内置app命名空间别名指向当前index.php入口文件目录
+     * 用户可以通过$app->setAlias('backend', __DIR__ . '/backend');来设置不同的模块别名
+     * 如果定义如下一个类
+     * namespace app;
+     * class Cspeed{
+     *     function sayVersion(){
+     *         echo "Yes, CSpeed class";
+     *     }
+     * }
+     * // 那么当你在实例化对象时系统自动在当前目录下查找 Cspeed.php文件
+     * $speed = new \app\Cspeed();
+     * // 当你设置了其余的别名后，系统会自动进行识别并加载类文件
+	 */
 	
-	/* 或者一次传入多个目录 */
-	$app->setIncludeDirs([
-		'.',
-		'/home/cspeed/controllers',
-		'/home/cspeed/models'
-	]);
-	
-	/* 设置了引入目录后，以后的类CSpeed都能从以上目录自动加载 */
-
 	/**
 	 *  处理GET请求, 
 	 *  第一个参数支持使用正则表达式进行URL匹配.
