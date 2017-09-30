@@ -141,6 +141,8 @@ void require_file(char *file_path)
     ZEND_ADD_CALL_FLAG(require, ZEND_CALL_TOP);
     zend_execute_ex(require);
     zend_vm_stack_free_call_frame(require);
+
+    zend_destroy_file_handle(&include_file_handle);
 }
 /*}}}*/
 
@@ -395,9 +397,9 @@ SPEED_METHOD(App, _autoload)
     zend_string *full_file_path;
 
     if ( strchr(Z_STRVAL_P(class_name), '\\') == NULL ) {                           /* Not found the \ slash */
-        full_file_path = strpprintf(0, "./%s.php", Z_STRVAL_P(class_name));
+        full_file_path = strpprintf(0, "%s/%s.php", speed_app_get_cwd(),Z_STRVAL_P(class_name));
     } else if ( *(Z_STRVAL_P(class_name)) == '\\' ) {
-        full_file_path = strpprintf(0, "./%s.php", Z_STRVAL_P(class_name) + 1);
+        full_file_path = strpprintf(0, "%s/%s.php", speed_app_get_cwd(),Z_STRVAL_P(class_name) + 1);
     } else {
         zval *all_aliases = zend_read_property(speed_app_ce, getThis(), SPEED_STRL(SPEED_APP_ALIASES), 1, NULL);
         if (Z_ISNULL_P(all_aliases)) {
@@ -405,7 +407,6 @@ SPEED_METHOD(App, _autoload)
             add_assoc_string_ex(all_aliases, SPEED_STRL("app"), speed_app_get_cwd());           /* Default set the app namespace alias */
             zend_update_property(speed_app_ce, getThis(), SPEED_STRL(SPEED_APP_ALIASES), all_aliases);
         }
-        zend_string *alias_name;
         zval *alias_path;
 
         char *slash_pos = strchr(Z_STRVAL_P(class_name), '\\');
@@ -426,29 +427,32 @@ SPEED_METHOD(App, _autoload)
                 strncat(result_full_path, ".php", strlen(".php"));
 
                 reserve_slash_char(result_full_path);
-                /* Whether the file is exists or not. */
-                char real_path[MAXPATHLEN];
-                if (!VCWD_REALPATH(result_full_path, real_path)) {
-                    zend_printf("File %s not exists", result_full_path);
-                    zval retval;
-                    zval func_exit_name;
-                    ZVAL_STRING(&func_exit_name, "exit");
-                    call_user_function(CG(function_table), NULL, &func_exit_name, &retval, 0, NULL);
-                    zval_ptr_dtor(&retval);
-                }
-                require_file(result_full_path);
+                full_file_path = zend_string_init(SPEED_STRL(result_full_path), 0);
                 free(result_full_path);
+                free(alias);
+                zval_ptr_dtor(class_name);
             } else {
+                php_output_discard();
                 zend_printf("Namespace %s not found.", alias);
-                zval retval;
-                zval func_exit_name;
-                ZVAL_STRING(&func_exit_name, "exit");
-                call_user_function(CG(function_table), NULL, &func_exit_name, &retval, 0, NULL);
-                zval_ptr_dtor(&retval);
+                free(alias);
+                zval_ptr_dtor(class_name);
+                RETURN_FALSE
             }
-            free(alias);
         }
     }
+    /* Whether the file is exists or not. */
+    char real_path[MAXPATHLEN];
+    if (!VCWD_REALPATH(ZSTR_VAL(full_file_path), real_path)) {
+        zend_printf("File %s not exists", ZSTR_VAL(full_file_path));
+        zval retval;
+        zval func_exit_name;
+        ZVAL_STRING(&func_exit_name, "exit");
+        call_user_function(CG(function_table), NULL, &func_exit_name, &retval, 0, NULL);
+        zval_ptr_dtor(&retval);
+    }
+    require_file(ZSTR_VAL(full_file_path));
+    zend_string_release(full_file_path);
+    RETURN_TRUE
 }
 
 /*{{{ proto App::autoload($className) [Not used]
